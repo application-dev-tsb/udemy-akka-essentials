@@ -12,16 +12,21 @@ object Playground extends App {
     def props(name: String) = Props(new Person(name))
   }
 
-  class Person(name: String) extends Actor {
-
-    var words: Set[String] = Set()
+  class Person(var name: String) extends Actor {
 
     override def receive: Receive = {
-      case message: String => words += message.split(" ")
-      case _ => words.toString()
+      case message: String => println(s"$name: $message")
+      case ChangeName(newName) => name = newName
+      case _ => println("???")
     }
   }
 
-  val person = actorSystem.actorOf(Person.props("Hello Scala"))
+  case class ChangeName(val newName: String)
+
+  val person = actorSystem.actorOf(Person.props("Robert"))
   person ! "Bye Java"
+
+  person ! "Hello"
+  person ! ChangeName("Howard")
+  person ! "Hello Again"
 }
