@@ -6,3 +6,6 @@ lazy val root = (project in file("."))
   .settings(
     name := "udemy-akka-essentials"
   )
+
+libraryDependencies +=
+  "com.typesafe.akka" %% "akka-actor" % "2.6.18"
