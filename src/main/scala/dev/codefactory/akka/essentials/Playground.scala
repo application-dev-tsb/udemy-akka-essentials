@@ -21,7 +21,7 @@ object Playground extends App {
     }
   }
 
-  case class ChangeName(val newName: String)
+  case class ChangeName(newName: String)
 
   val person = actorSystem.actorOf(Person.props("Robert"))
   person ! "Bye Java"
@@ -29,4 +29,6 @@ object Playground extends App {
   person ! "Hello"
   person ! ChangeName("Howard")
   person ! "Hello Again"
+
+  actorSystem.terminate()
 }
