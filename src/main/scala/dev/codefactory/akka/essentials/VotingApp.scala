@@ -9,13 +9,29 @@ object VotingApp extends App {
   case class Vote(candidate: String)
   case object VoteStatusRequest
   case class VoteStatusAndReply(candidate: Option[String])
-  class Citizen extends Actor {
-    override def receive: Receive = ???
+  class Citizen(var candidate: Option[String] = None) extends Actor {
+    override def receive: Receive = {
+      case Vote(candidate) => this.candidate = Some(candidate)
+      case VoteStatusRequest => sender() ! VoteStatusAndReply(candidate)
+    }
   }
 
   case class AggregateVotes(citizens: Set[ActorRef])
+  case object DeclareWinner
   class VoteAggregator extends Actor {
-    override def receive: Receive = ???
+    var votes: Map[String, Int] = Map()
+
+    override def receive: Receive = {
+      case AggregateVotes(citizens) => citizens.foreach(_ ! VoteStatusRequest)
+      case VoteStatusAndReply(Some(candidate)) => {
+        if (votes contains candidate) {
+
+        } else {
+          votes += (candidate, 1)
+        }
+      }
+      case DeclareWinner => println(votes)
+    }
   }
 
   //use case:
@@ -31,4 +47,6 @@ object VotingApp extends App {
 
   val voteAggregator = system.actorOf(Props[VoteAggregator])
   voteAggregator ! AggregateVotes(Set(alice, bob, charlie, daniel))
+
+  voteAggregator ! DeclareWinner
 }
