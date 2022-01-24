@@ -9,7 +9,9 @@ object VotingApp extends App {
   case class Vote(candidate: String)
   case object VoteStatusRequest
   case class VoteStatusAndReply(candidate: Option[String])
-  class Citizen(var candidate: Option[String] = None) extends Actor {
+  class Citizen() extends Actor {
+    var candidate: Option[String] = None
+
     override def receive: Receive = {
       case Vote(candidate) => this.candidate = Some(candidate)
       case VoteStatusRequest => sender() ! VoteStatusAndReply(candidate)
@@ -19,18 +21,24 @@ object VotingApp extends App {
   case class AggregateVotes(citizens: Set[ActorRef])
   case object DeclareWinner
   class VoteAggregator extends Actor {
+    var haveNotVoted: Set[ActorRef] = Set()
     var votes: Map[String, Int] = Map()
 
     override def receive: Receive = {
-      case AggregateVotes(citizens) => citizens.foreach(_ ! VoteStatusRequest)
-      case VoteStatusAndReply(Some(candidate)) => {
-        if (votes contains candidate) {
-
-        } else {
-          //votes += (candidate, 1)
-        }
+      case AggregateVotes(citizens) => {
+        haveNotVoted = citizens
+        citizens.foreach(_ ! VoteStatusRequest)
       }
-      case DeclareWinner => println(votes)
+      case VoteStatusAndReply(Some(c)) =>
+        val newHaveNotVoted = haveNotVoted - sender()
+        val currentVoteOfCandidate = votes.getOrElse(c, 0)
+        votes = votes + (c -> (currentVoteOfCandidate+1))
+        haveNotVoted = newHaveNotVoted
+        if (haveNotVoted.isEmpty) {
+          context.self ! DeclareWinner
+        }
+      case DeclareWinner =>
+        println(s"Declare Winner: $votes")
     }
   }
 
@@ -48,5 +56,7 @@ object VotingApp extends App {
   val voteAggregator = system.actorOf(Props[VoteAggregator])
   voteAggregator ! AggregateVotes(Set(alice, bob, charlie, daniel))
 
-  voteAggregator ! DeclareWinner
+  Thread.sleep(5_000)
+
+  system.terminate()
 }
