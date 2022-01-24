@@ -27,7 +27,7 @@ object VotingApp extends App {
         if (votes contains candidate) {
 
         } else {
-          votes += (candidate, 1)
+          //votes += (candidate, 1)
         }
       }
       case DeclareWinner => println(votes)
