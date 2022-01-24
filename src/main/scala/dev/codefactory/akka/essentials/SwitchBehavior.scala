@@ -47,6 +47,11 @@ object SwitchBehavior extends App {
     }
   }
 
+
+  //IMPORTANT NOTE:
+  //BECOME AND AND BECOME ALSO COMES IN "STACK" MODE, INSTEAD OF JUST REPLACE
+  // context.become(anotherHandler, true) <------ the bool param
+
   val system = ActorSystem("test123")
   val statelessActorDemo = system.actorOf(Props[StatelessActorDemo])
   val messenger = system.actorOf(Props[Messenger])
